@@ -4,6 +4,8 @@ from __future__ import print_function
 from importlib import import_module
 import re
 
+from yadic.util import deep_merge
+
 
 class Injectable(type):
     "Provides the __init__ with the suitable args, based on dependencies"
@@ -42,30 +44,16 @@ class Container(object):
         """Rebuilds the configuration for the speedup purpose
         :param config: initial configuration
         :type config: dict"""
-        def apply_if(a, b):
-            for bk, bv in b.items():
-                av = a.get(bk)
-                if av is None:
-                    a[bk] = bv
-                else:
-                    av_is_dict, bv_is_dict = (
-                        isinstance(av, dict), isinstance(bv, dict))
-                    if av_is_dict and bv_is_dict:
-                        apply_if(av, bv)
-                    elif av_is_dict or bv_is_dict:
-                        raise ValueError(
-                            'Structures of plan and cusomization must match!')
-                    else:
-                        a[bk] = bv
-            return a
-
         result = {}
         for sect, elems in config.items():
             plan = elems.get('__default__', {})
             section = result[sect] = {}
             for el_name, customization in elems.items():
                 if el_name != '__default__':
-                    section[el_name] = apply_if(plan.copy(), customization)
+                    section[el_name] = deep_merge(
+                        plan.copy(), customization,
+                        lambda x, y, m, p: y
+                    )
         return result
 
     @staticmethod
@@ -199,7 +187,7 @@ if __name__ == '__main__':
 
         def __str__(self):
             return "%s on %s" % (self.name, self.fuel)
-    
+
     # 2/3 compatible class
     Vehicle = Injectable(
         'Vehicle',
@@ -322,4 +310,3 @@ if __name__ == '__main__':
         }
     })
     assert cont.get('results', 'sum_x_y') == 42
-

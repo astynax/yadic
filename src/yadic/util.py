@@ -4,12 +4,14 @@
 
 def merge(d1, d2, fn, path=tuple()):
     """
-    Сливает словарь d1 со словарем d2, дополняя первый
-    данными второго. Коллизии разрешает функция fn,
-    в которую передаются:
-    - конфликтующие значения
-    - сама эта функция
-    - путь до значений
+    Updates the dict "d1" with elems of the dict "d2",
+    and returns the dict "d1".
+    Collisions will be resolved using the function "fn",
+    which takes:
+    - both of values
+    - link to itself
+    - path to values (for ex. ("level1", "level2"))
+    end returns new value.
     """
     if not isinstance(d1, dict) or not isinstance(d2, dict):
         raise TypeError("Only dicts can be merged!")
@@ -28,12 +30,12 @@ def deep_merge(d1, d2, fn):
     Сливает словари вглубь, функция fn используется
     для не-словарей.
     """
-    def merger(a, b, f, p):
-        if isinstance(a, dict) and isinstance(b, dict):
+    def merger(x, y, m, p):
+        if isinstance(x, dict) and isinstance(y, dict):
             g = merge
         else:
             g = fn
-        return g(a, b, f, p)
+        return g(x, y, m, p)
 
     return merge(d1, d2, merger)
 

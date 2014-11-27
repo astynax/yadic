@@ -117,12 +117,19 @@ class Container(object):
             if not is_singleton or not result:
                 deps = {}
                 for dep_group, dep_name in blueprint.items():
+                    # handle "__interdal__" deps
                     if dep_group.startswith('_'):
                         continue
+                    # handle "$static" deps
                     elif dep_group.startswith('$'):
                         deps[dep_group[1:]] = dep_name
                     else:
-                        deps[dep_group] = self.get(dep_group, dep_name)
+                        # handle "name:group"-like keys
+                        if ':' in dep_group:
+                            dep_attr, custom_dep_group = dep_group.split(':')
+                        else:
+                            dep_attr = custom_dep_group = dep_group
+                        deps[dep_attr] = self.get(custom_dep_group, dep_name)
                 result = realization(**deps)
                 if is_singleton:
                     self._singletones[(group, name)] = result
@@ -140,6 +147,8 @@ class Container(object):
             errors.append('%r is a wrong %s name!' % (':'.join(names), what))
 
         is_ident = re.compile(r'(?i)^[a-z]\w*$').match
+        is_valid_name = re.compile(
+            r'(?i)^(?:\$?[a-z]\w*)|(?:[a-z]\w*:[a-z]\w*)$').match
 
         for group, elems in cfg.items():
             if not is_ident(group):
@@ -149,8 +158,7 @@ class Container(object):
                     wrong('element', (group, el))
                 for k, v in cfg.items():
                     if not (
-                        is_ident(k) or
-                        (is_ident(k[1:]) and k[0] == '$') or
+                        is_valid_name(k) or
                         k in ('__realization__', '__type__')
                     ):
                         wrong('attr', (group, el, k))
@@ -171,9 +179,13 @@ if __name__ == '__main__':
     assert Container.collect_errors({'grp': {'$name': {}}})
     assert Container.collect_errors({'grp': {'name': {'$$attr': ''}}})
     assert Container.collect_errors({'grp': {'name': {'$': ''}}})
+    assert Container.collect_errors({'grp': {'$name:grp': {}}})
+    assert Container.collect_errors({'grp': {'name:grp:grp': {}}})
+    assert Container.collect_errors({'grp': {'name::grp': {}}})
+    assert Container.collect_errors({'grp': {'name:': {}}})
     assert Container.collect_errors({'grp': {'name': {'__type__': 'asdf'}}})
     assert Container.collect_errors(
-        {'grp': {'name': {'__realizationn__': 'asdf'}}})
+        {'grp': {'name': {'__realizationN__': 'asdf'}}})
 
     # ============================================
     # complex example
@@ -310,3 +322,28 @@ if __name__ == '__main__':
         }
     })
     assert cont.get('results', 'sum_x_y') == 42
+
+    # =====================================
+    # multiple deps from one group
+
+    cont = type('MGContainer', (Container,), {
+        '_get_entity': staticmethod({
+            'Sum': lambda x, y: x + y,
+            'X': 15,
+            'Y': 27,
+        }.get)
+    })({
+        'result': {
+            'sum': {
+                '__realization__': 'Sum',
+                'x:arg': 'x',
+                'y:arg': 'y'
+            }
+        },
+        'arg': {
+            '__default__': {'__type__': 'static'},
+            'x': {'__realization__': 'X'},
+            'y': {'__realization__': 'Y'}
+        }
+    })
+    assert cont.get('result', 'sum') == 42

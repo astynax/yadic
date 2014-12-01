@@ -129,7 +129,12 @@ class Container(object):
                             dep_attr, custom_dep_group = dep_group.split(':')
                         else:
                             dep_attr = custom_dep_group = dep_group
-                        deps[dep_attr] = self.get(custom_dep_group, dep_name)
+                        if isinstance(dep_name, str):
+                            dep_value = self.get(custom_dep_group, dep_name)
+                        else:
+                            dep_value = [self.get(custom_dep_group, d)
+                                         for d in dep_name]
+                        deps[dep_attr] = dep_value
                 result = realization(**deps)
                 if is_singleton:
                     self._singletones[(group, name)] = result
@@ -338,6 +343,30 @@ if __name__ == '__main__':
                 '__realization__': 'Sum',
                 'x:arg': 'x',
                 'y:arg': 'y'
+            }
+        },
+        'arg': {
+            '__default__': {'__type__': 'static'},
+            'x': {'__realization__': 'X'},
+            'y': {'__realization__': 'Y'}
+        }
+    })
+    assert cont.get('result', 'sum') == 42
+
+    # =================================================
+    # multiple deps from one group as a single argument
+
+    cont = type('MGContainer', (Container,), {
+        '_get_entity': staticmethod({
+            'Sum': lambda nums: nums[0] + nums[1],
+            'X': 15,
+            'Y': 27,
+        }.get)
+    })({
+        'result': {
+            'sum': {
+                '__realization__': 'Sum',
+                'nums:arg': ['x', 'y']
             }
         },
         'arg': {

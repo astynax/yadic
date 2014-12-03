@@ -4,7 +4,16 @@ from __future__ import print_function
 from importlib import import_module
 import re
 
-from yadic.util import deep_merge
+from yadic.util import merge
+
+
+def _merge_upto_lvl2_then_take_other(d1, d2, resolver, path):
+    """"merge tool", suitable for normalization
+    of the container configuration"""
+    if isinstance(d1, dict) and isinstance(d2, dict) and len(path) < 2:
+        # not so deep, merging...
+        return merge(d1, d2, resolver, path)
+    return d2  # "take other"
 
 
 class Injectable(type):
@@ -35,24 +44,24 @@ class Container(object):
         errors = self.collect_errors(config)
         if errors:
             raise ValueError('\n'.join(['Config errors:'] + errors))
-        self._config = self._denormalize(config)
+        self._config = self._normalize(config)
         self._entity_cache = {}
         self._singletones = {}
 
     @staticmethod
-    def _denormalize(config):
+    def _normalize(config):
         """Rebuilds the configuration for the speedup purpose
         :param config: initial configuration
         :type config: dict"""
         result = {}
         for sect, elems in config.items():
-            plan = elems.get('__default__', {})
+            plan = elems.pop('__default__', {})
             section = result[sect] = {}
             for el_name, customization in elems.items():
                 if el_name != '__default__':
-                    section[el_name] = deep_merge(
+                    section[el_name] = merge(
                         plan.copy(), customization,
-                        lambda x, y, m, p: y
+                        _merge_upto_lvl2_then_take_other
                     )
         return result
 
@@ -376,3 +385,49 @@ if __name__ == '__main__':
         }
     })
     assert cont.get('result', 'sum') == 42
+
+    # =================================================
+    # "merge tool" test
+
+    fridge = {
+        'food': {
+            'bread': 1,
+            'eggs': {
+                'croc': 2,
+                'turkey': 7,
+            }
+        },
+        'drinks': {
+            'bottles': [0.5, 0.33]
+        }
+    }
+
+    basket = {
+        'food': {
+            'bread': 10,
+            'carrot': 2,
+            'eggs': {
+                'rukh': 1
+            }
+        },
+        'drinks': {
+            'bottles': [1.0],
+            'cans': [0.25, 0.25]
+        }
+    }
+
+    our_food = merge(fridge, basket, _merge_upto_lvl2_then_take_other)
+
+    assert our_food == {
+        'food': {
+            'bread': 10,
+            'carrot': 2,
+            'eggs': {
+                'rukh': 1,
+            }
+        },
+        'drinks': {
+            'bottles': [1.0],
+            'cans': [0.25, 0.25]
+        }
+    }

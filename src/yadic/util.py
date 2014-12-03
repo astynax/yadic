@@ -27,8 +27,7 @@ def merge(d1, d2, fn, path=tuple()):
 
 def deep_merge(d1, d2, fn):
     """
-    Сливает словари вглубь, функция fn используется
-    для не-словарей.
+    Merges d2 into d1 on any level of the depth
     """
     def merger(x, y, m, p):
         if isinstance(x, dict) and isinstance(y, dict):

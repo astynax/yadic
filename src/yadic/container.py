@@ -45,7 +45,6 @@ class Container(object):
         if errors:
             raise ValueError('\n'.join(['Config errors:'] + errors))
         self._config = self._normalize(config)
-        print(self._config)
         self._entity_cache = {}
         self._singletones = {}
 

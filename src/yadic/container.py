@@ -45,6 +45,7 @@ class Container(object):
         if errors:
             raise ValueError('\n'.join(['Config errors:'] + errors))
         self._config = self._normalize(config)
+        print(self._config)
         self._entity_cache = {}
         self._singletones = {}
 
@@ -53,14 +54,37 @@ class Container(object):
         """Rebuilds the configuration for the speedup purpose
         :param config: initial configuration
         :type config: dict"""
+
+        def norm_deps(blueprint):
+            """Converts each of the dependencies to one of the forms:
+            ```
+            "name": (None, (('group', 'entity'),...))
+            "name": ('group', 'entity')
+            "$name": value
+            "__name__": value
+            ```"""
+            result = {}
+            for k, v in blueprint.items():
+                if k.startswith('$') or k.startswith('__'):
+                    result[k] = v
+                else:
+                    kk, group = (k.split(':') + [k])[:2]
+                    if isinstance(v, list):
+                        vv = (None, tuple((group, i) for i in v))
+                    else:
+                        vv = (group, v)
+                    result[kk] = vv
+            return result
+
         result = {}
         for sect, elems in config.items():
-            plan = elems.pop('__default__', {})
+            plan = norm_deps(elems.pop('__default__', {}))
             section = result[sect] = {}
             for el_name, customization in elems.items():
                 if el_name != '__default__':
                     section[el_name] = merge(
-                        plan.copy(), customization,
+                        plan.copy(),  # no deepcopy cause of single-level dict
+                        norm_deps(customization),
                         _merge_upto_lvl2_then_take_other
                     )
         return result
@@ -78,9 +102,9 @@ class Container(object):
 
     def _get_blueprint(self, group, name):
         """Returns the entity configuration and realization
-        :param group: entity group
+        :param group: group of entities
         :type group: str
-        :param name: entity name
+        :param name: name of entity
         :type name: str"""
         blueprint = self._config[group][name]
         key = (group, name)
@@ -125,25 +149,22 @@ class Container(object):
                 result = self._singletones.get((group, name))
             if not is_singleton or not result:
                 deps = {}
-                for dep_group, dep_name in blueprint.items():
+                for dep_name, dep_val in blueprint.items():
                     # handle "__interdal__" deps
-                    if dep_group.startswith('_'):
+                    if dep_name.startswith('_'):
                         continue
                     # handle "$static" deps
-                    elif dep_group.startswith('$'):
-                        deps[dep_group[1:]] = dep_name
+                    elif dep_name.startswith('$'):
+                        deps[dep_name[1:]] = dep_val
                     else:
-                        # handle "name:group"-like keys
-                        if ':' in dep_group:
-                            dep_attr, custom_dep_group = dep_group.split(':')
+                        # handle manageable deps
+                        first, rest = dep_val
+                        if first is None:
+                            deps[dep_name] = tuple(
+                                self.get(g, e) for (g, e) in rest
+                            )
                         else:
-                            dep_attr = custom_dep_group = dep_group
-                        if isinstance(dep_name, str):
-                            dep_value = self.get(custom_dep_group, dep_name)
-                        else:
-                            dep_value = [self.get(custom_dep_group, d)
-                                         for d in dep_name]
-                        deps[dep_attr] = dep_value
+                            deps[dep_name] = self.get(first, rest)
                 result = realization(**deps)
                 if is_singleton:
                     self._singletones[(group, name)] = result

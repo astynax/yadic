@@ -7,6 +7,33 @@ from yadic.container import (
 )
 
 
+def test_config_normalization():
+    """Tests the normalization of config"""
+    assert Container._normalize({
+        'grp': {
+            '__default__': {
+                'dep1': 'x',
+                'dep2': 'z',
+                '$arg': 100,
+                'other': ['a', 'b']
+            },
+            'ent': {
+                'dep1:dep1': 'y',
+                'other:other': ['c']
+            }
+        }
+    }) == {
+        'grp': {
+            'ent': {
+                'dep1': ('dep1', 'y'),
+                'dep2': ('dep2', 'z'),
+                '$arg': 100,
+                'other': (None, (('other', 'c'),))
+            }
+        }
+    }
+
+
 def test_config_validation():
     """Tests the validation of the config"""
 

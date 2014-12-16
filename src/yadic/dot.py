@@ -87,7 +87,7 @@ def _parse_filter(filter_string):
     into dictionary "group -> set of entities"
 
     >>> _parse_string('names:Tom,Moe;pets:Spot;cars')
-    {'names': ['Tom', 'Moe'], 'pets': ['Spot'], 'cars': []}
+    {'names': set(['Tom', 'Moe']), 'pets': set(['Spot']), 'cars': set()}
     """
     result = {}
     for f in filter_string.split(';'):

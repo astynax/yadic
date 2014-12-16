@@ -73,7 +73,8 @@ def dot(container, include, exclude):
 
     for group, ents in data.items():
         render_group(
-            checker(include), checker(exclude),
+            checker(include) if include else keep_all,
+            checker(exclude),
             group, ents.items(),
             dep_render=dep_render
         )

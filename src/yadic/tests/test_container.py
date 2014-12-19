@@ -15,11 +15,16 @@ def test_config_normalization():
                 'dep1': 'x',
                 'dep2': 'z',
                 '$arg': 100,
-                'other': ['a', 'b']
+                'other': ['a', 'b'],
+                '$dic': {'a': 1}
             },
             'ent': {
                 'dep1:dep1': 'y',
-                'other:other': ['c']
+                'other:other': ['c'],
+                '$dic': {'b': 2}
+            },
+            'ent2': {
+                '$dic': {'c': 3}
             }
         }
     }) == {
@@ -28,7 +33,15 @@ def test_config_normalization():
                 'dep1': ('dep1', 'y'),
                 'dep2': ('dep2', 'z'),
                 '$arg': 100,
-                'other': (None, (('other', 'c'),))
+                'other': (None, (('other', 'c'),)),
+                '$dic': {'b': 2},
+            },
+            'ent2': {
+                'dep1': ('dep1', 'x'),
+                'dep2': ('dep2', 'z'),
+                '$arg': 100,
+                'other': (None, (('other', 'a'), ('other', 'b'))),
+                '$dic': {'c': 3}
             }
         }
     }

@@ -10,7 +10,7 @@ from yadic.util import merge
 def _merge_upto_lvl2_then_take_other(d1, d2, resolver, path):
     """"merge tool", suitable for normalization
     of the container configuration"""
-    if isinstance(d1, dict) and isinstance(d2, dict) and len(path) < 2:
+    if isinstance(d1, dict) and isinstance(d2, dict) and not path:
         # not so deep, merging...
         return merge(d1, d2, resolver, path)
     return d2  # "take other"

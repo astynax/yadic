@@ -53,9 +53,9 @@
     <h2>{{title}}</h2>
 
     <form id="options">
-      <label for="include">Include</label><input id="include" type="text"/>
+      <label for="include">Include</label><input id="include" type="text" style="width: 100%;"/>
       <br/>
-      <label for="exclude">Exclude</label><input id="exclude" type="text"/>
+      <label for="exclude">Exclude</label><input id="exclude" type="text" style="width: 100%;"/>
       <br/>
       <input id="apply" type="button" value="Apply"/>
     </form>
@@ -76,38 +76,83 @@
             });
         svg.call(zoom);
 
-        function tryRender(data) {
+        function tryRender(data, pass) {
 
-            function build(graph, visited, group, name) {
-                var lbl = group + ":" + name;
-                console.log(lbl);
-                if (!visited[lbl]) {
-                    graph.setNode(lbl, { label: lbl });
-                    visited[lbl] = true;
+            function build(graph, group, name, topLevel) {
+                var item = group + ":" + name;
+                if (pass(group, item, !topLevel)) {
+                    graph.setNode(item, { label: item });
                     var deps = (data[group] || {})[name] || [];
                     for(var i = 0; i < deps.length; i++) {
                         var depGroup = deps[i][0],
                             depName = deps[i][1],
-                            depLbl = depGroup + ":" + depName;
-                        build(graph, visited, depGroup, depName);
-                        graph.setEdge(lbl, depLbl);
+                            depItem = depGroup + ":" + depName;
+                        if (pass(group, depItem, !topLevel)) {
+                            if (build(graph, depGroup, depName, false)) {
+                                graph.setEdge(item, depItem);
+                            };
+                        };
                     };
+                    return true;
                 };
             };
 
-            var g = new graphlib.Graph(),
-                visited = {};
-
+            var g = new graphlib.Graph();
             g.setGraph({});
             g.setDefaultEdgeLabel(function() { return {}; });
 
             for(var grp in data){
                 for(var name in data[grp]){
-                    build(g, visited, grp, name);
+                    build(g, grp, name, true);
                 };
             };
+
             dagre.layout(g);
             d3.select("svg g").call(dagreD3.render(), g);
+        };
+
+        function parseInput(s) {
+            var groups = [], items = [], rows = s.split(";");
+            for(var idx = 0; idx < rows.length; idx++){
+                var row = rows[idx].split(":");
+                if (row.length <= 2) {
+                    var group = row[0];
+                    if (row.length == 1) {
+                        if (group != "") {
+                            groups.push(group);
+                        };
+                    } else {
+                        var ents = row[1].split(",");
+                        for(var i = 0; i < ents.length; i++){
+                            items.push(group + ":" + ents[i])
+                        };
+                    };
+                };
+            };
+            return [groups, items]
+        };
+
+        function makeFilter(include, exclude) {
+            var incs = parseInput(include),
+                excs = parseInput(exclude),
+
+                matcher = function(groups, items) {
+                    return function(group, item) {
+                        return (
+                            (groups.indexOf(group) >= 0) || (items.indexOf(item) >= 0)
+                        );
+                    };
+                },
+
+                pass = (!incs[0].length && !incs[1].length) ? function(){ return true } : matcher(incs[0], incs[1]),
+                skip = matcher(excs[0], excs[1]);
+
+            return function(group, item, onlyExclude) {
+                return (
+                    (onlyExclude || pass(group, item)) &&
+                    !skip(group, item)
+                );
+            };
         };
 
         window.onload = function() {
@@ -115,10 +160,11 @@
                 excludeField = $("#exclude")[0];
 
             $("#apply").on("click", function() {
-                console.log(includeField.value, excludeField.value);
+                var pass = makeFilter(includeField.value, excludeField.value);
+                tryRender(data, pass);
             });
 
-            tryRender(data);
+            tryRender(data, function() { return true });
         };
     </script>
   </body>

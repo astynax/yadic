@@ -1,0 +1,28 @@
+language: python
+python:
+- '2.6'
+- '2.7'
+- '3.3'
+- '3.4'
+install:
+- easy_install -U pip
+- pip install pytest>=2.6.4 pytest-pep8 pytest-cov coveralls
+script:
+- py.test --pep8 --cov ./src --cov-config=.coveragerc
+after_success:
+- coveralls
+notifications:
+  email:
+    recipients:
+    - telepenin@bars-open.ru
+    - pirogov@bars-open.ru
+    on_success: never
+deploy:
+  provider: pypi
+  user: bars-travis
+  password:
+    secure: C8KHE81/HnOoLZcYW3DuqLPR4ovvAqN2l3Wr4lCujUnjFqhnXb33+Mz+JumfdNFbqz6JSAihpkU0xA0VQ+ox1I7LnP8e7wSUWURqfePH3b0Y4fX7LbK0ehWcsdlkHmxNfzc6VIEN8CQkXnfuy6Uj27NtRSkbgHJWBFGb9yHvz+U=
+  on:
+    tags: true
+    all_branches: true
+  distributions: "sdist bdist_wheel"

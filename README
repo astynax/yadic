@@ -18,6 +18,10 @@
     :target: https://pypi.python.org/pypi/yadic/
     :alt: Development Status
 
+.. image:: https://pypip.in/license/yadic/badge.svg?style=flat
+    :target: https://pypi.python.org/pypi/yadic/
+    :alt: License
+
 Yet Another DI Container
 --------------------------------
 

@@ -20,8 +20,8 @@ deploy:
   provider: pypi
   user: bars-travis
   password:
-    secure: C8KHE81/HnOoLZcYW3DuqLPR4ovvAqN2l3Wr4lCujUnjFqhnXb33+Mz+JumfdNFbqz6JSAihpkU0xA0VQ+ox1I7LnP8e7wSUWURqfePH3b0Y4fX7LbK0ehWcsdlkHmxNfzc6VIEN8CQkXnfuy6Uj27NtRSkbgHJWBFGb9yHvz+U=
+    secure: Oy6kZintPKRloRr6cdm6yuJStw+wOkqMRa6/KRC20b/io0J7SLRw10rd74I8vKUL5itg+7Q8IdFXBMvrWX5EyzYLrhIZnWszkZy83mFoVGH5zcaxMtl0JRAqFf0msn2i1disjDbOqx97Ot7AQwPD8/rZ2nCnEAPC8PfC8bLYWVs=
   on:
     tags: true
     all_branches: true
-  distributions: "sdist bdist_wheel"
+  distributions: sdist bdist_wheel

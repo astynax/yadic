@@ -6,6 +6,18 @@
     :target: https://coveralls.io/r/barsgroup/yadic
     :alt: Coverage
 
+.. image:: https://pypip.in/version/yadic/badge.svg?style=flat
+    :target: https://pypi.python.org/pypi/yadic/
+    :alt: Latest Version
+
+.. image:: https://pypip.in/py_versions/yadic/badge.svg?style=flat
+    :target: https://pypi.python.org/pypi/yadic/
+    :alt: Supported Python versions
+
+.. image:: https://pypip.in/status/yadic/badge.svg?style=flat
+    :target: https://pypi.python.org/pypi/yadic/
+    :alt: Development Status
+
 Yet Another DI Container
 --------------------------------
 

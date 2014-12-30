@@ -13,7 +13,7 @@ def read(fname):
 
 setup(
     name="yadic",
-    version="0.1.9",
+    version="0.1.10",
     license='MIT',
     description=read('DESCRIPTION'),
     author="Aleksey Pirogov",
@@ -27,7 +27,6 @@ setup(
         'Programming Language :: Python',
         'License :: OSI Approved :: MIT License',
         'Development Status :: 4 - Beta',
-        'Programming Language :: Python :: 2.6',
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',

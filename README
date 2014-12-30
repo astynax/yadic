@@ -6,7 +6,7 @@
     :target: https://coveralls.io/r/barsgroup/yadic
     :alt: Coverage
 
-.. image:: https://pypip.in/version/yadic/badge.svg?style=flat
+.. image:: https://pypip.in/version/yadic/badge.svg?style=flat&text=version
     :target: https://pypi.python.org/pypi/yadic/
     :alt: Latest Version
 

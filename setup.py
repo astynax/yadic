@@ -1,5 +1,6 @@
 # -*- coding: utf-8 -*-
 import os
+
 from setuptools import setup, find_packages
 
 
@@ -8,6 +9,7 @@ def read(fname):
         return open(os.path.join(os.path.dirname(__file__), fname)).read()
     except IOError:
         return ''
+
 
 setup(
     name="yadic",
@@ -25,6 +27,11 @@ setup(
         'Programming Language :: Python',
         'License :: OSI Approved :: MIT License',
         'Development Status :: 4 - Beta',
+        'Programming Language :: Python :: 2.6',
+        'Programming Language :: Python :: 2.7',
+        'Programming Language :: Python :: 3.3',
+        'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: Implementation :: CPython'
     ],
     package_dir={'': 'src'},
     packages=find_packages('src'),

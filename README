@@ -1,3 +1,12 @@
+
+.. image:: https://travis-ci.org/barsgroup/yadic.svg?branch=master
+    :target: https://travis-ci.org/barsgroup/yadic
+    :alt: Tests
+
+.. image:: https://coveralls.io/repos/barsgroup/yadic/badge.png
+    :target: https://coveralls.io/r/barsgroup/yadic
+    :alt: Coverage
+
 Yet Another DI Container
 --------------------------------
 

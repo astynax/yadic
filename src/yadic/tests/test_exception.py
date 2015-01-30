@@ -1,4 +1,4 @@
-#coding: utf-8
+# coding: utf-8
 
 from yadic.container import Container, EntityConfiguringError
 

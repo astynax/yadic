@@ -16,6 +16,20 @@ def _merge_upto_lvl2_then_take_other(d1, d2, resolver, path):
     return d2  # "take other"
 
 
+class EntityConfiguringError(TypeError):
+    """Entity getting error"""
+
+    def __init__(self, path, exc):
+        self.path = path
+        self.exc = exc
+
+    def __str__(self):
+        return ('"{1}" configuring error: "{0!s}"').format(
+            self.exc,
+            '->'.join(self.path)
+        )
+
+
 class Injectable(type):
     "Provides the __init__ with the suitable args, based on dependencies"
 
@@ -23,7 +37,7 @@ class Injectable(type):
         deps = dic.setdefault('depends_on', tuple())
         if deps and '__init__' not in dic:
             # формирование конструктора
-            init = eval("lambda self, %s: %s" % (
+            init = eval("lambda self, {}: {}".format(
                 ','.join(deps),
                 ' or '.join(
                     'setattr(self, "{0}", {0})'.format(d)
@@ -120,7 +134,7 @@ class Container(object):
         :type group: str
         """
         if group not in self._config:
-            raise KeyError("Unknown group: %r!" % group)
+            raise KeyError("Unknown group: {}!".format(group))
         return (
             (i,) + self._get_blueprint(group, i)
             for i in self._config[group]
@@ -133,10 +147,11 @@ class Container(object):
         :param name: entity name
         :type name: str
         """
+        fullname = '{}:{}'.format(group, name)
         try:
             blueprint, realization = self._get_blueprint(group, name)
         except KeyError:
-            raise ValueError("%s:%s is not configured!" % (group, name))
+            raise ValueError("{} is not configured!".format(fullname))
 
         typ = blueprint.get('__type__')
 
@@ -158,13 +173,20 @@ class Container(object):
                     else:
                         # handle manageable deps
                         first, rest = dep_val
-                        if first is None:
-                            deps[dep_name] = tuple(
-                                self.get(g, e) for (g, e) in rest
-                            )
-                        else:
-                            deps[dep_name] = self.get(first, rest)
-                result = realization(**deps)
+                        try:
+                            if first is None:
+                                deps[dep_name] = tuple(
+                                    self.get(g, e) for (g, e) in rest
+                                )
+                            else:
+                                deps[dep_name] = self.get(first, rest)
+                        except EntityConfiguringError as e:
+                            e.path = (fullname,) + e.path
+                            raise
+                try:
+                    result = realization(**deps)
+                except Exception as e:
+                    raise EntityConfiguringError(path=(fullname,), exc=e)
                 if is_singleton:
                     self._singletones[(group, name)] = result
         return result
@@ -178,7 +200,8 @@ class Container(object):
         errors = []
 
         def wrong(what, names):
-            errors.append('%r is a wrong %s name!' % (':'.join(names), what))
+            errors.append(
+                '{0!r} is a wrong {1} name!'.format(':'.join(names), what))
 
         is_ident = re.compile(r'(?i)^[a-z]\w*$').match
         is_valid_name = re.compile(

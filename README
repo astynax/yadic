@@ -22,8 +22,8 @@
     :target: https://pypi.python.org/pypi/yadic/
     :alt: License
 
-Yet Another DI Container
---------------------------------
+Yet Another Dependency Injection Container
+------------------------------------------
 
 Take a look to the tests for usage examples
 

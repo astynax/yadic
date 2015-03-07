@@ -13,7 +13,7 @@ def read(fname):
 
 setup(
     name="yadic",
-    version="0.1.12.2",
+    version="0.1.12.3",
     license='MIT',
     description=read('DESCRIPTION'),
     author="Aleksey Pirogov",

@@ -31,7 +31,8 @@ def dot(container, include, exclude):
             return not ents or ent in ents
         return inner
 
-    keep_all = lambda *args: True
+    def keep_all(*args):
+        return True
 
     out = []
     already = set()

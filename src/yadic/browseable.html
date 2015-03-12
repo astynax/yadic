@@ -1,0 +1,171 @@
+<!DOCTYPE html>
+<html>
+  <head>
+    <meta charset="utf-8">
+    <title>{{title}}</title>
+    <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/d3/3.5.2/d3.min.js" charset="utf-8"></script>
+    <script type="text/javascript" src="https://cpettitt.github.io/project/graphlib/latest/graphlib.min.js"></script>
+    <script type="text/javascript" src="https://cpettitt.github.io/project/dagre/latest/dagre.min.js"></script>
+    <script type="text/javascript" src="https://cpettitt.github.io/project/dagre-d3/latest/dagre-d3.min.js"></script>
+    <script type="text/javascript" src="https://code.jquery.com/jquery-1.11.0.min.js"></script>
+    <style type="text/css">
+      svg {
+          border: 1px solid #999;
+          overflow: hidden;
+      }
+      text {
+          font-weight: 300;
+          font-family: "Helvetica Neue", Helvetica, Arial, sans-serf;
+          font-size: 14px;
+      }
+      .node rect {
+          stroke: #333;
+          fill: #fff;
+          stroke-width: 1.5px;
+      }
+      .edgePath path {
+          stroke: #333;
+          stroke-width: 1.5px;
+      }
+      table {
+          border-spacing: 0;
+      }
+      table td {
+          padding: 7px;
+      }
+      table td:first-child {
+          background-color: #afa;
+          border-top: 1px solid #333;
+          border-left: 1px solid #333;
+          border-bottom: 1px solid #333;
+          border-radius: 5px 0 0 5px;
+      }
+      table td:last-child {
+          background-color: #faa;
+          border-top: 1px solid #333;
+          border-right: 1px solid #333;
+          border-bottom: 1px solid #333;
+          border-radius: 0 5px 5px 0;
+      }
+    </style>
+  </head>
+  <body>
+    <h2>{{title}}</h2>
+
+    <form id="options">
+      <label for="include">Include</label><input id="include" type="text" style="width: 100%;"/>
+      <br/>
+      <label for="exclude">Exclude</label><input id="exclude" type="text" style="width: 100%;"/>
+      <br/>
+      <input id="apply" type="button" value="Apply"/>
+    </form>
+
+    <svg width="100%" height="600"><g/></svg>
+
+    <script type="text/javascript">
+        // {'group': {'name': [['depGroup', 'depName'],..],...},...}
+        var data = {{data}};
+
+        var render = dagreD3.render(),
+            svg = d3.select("svg"),
+            inner = d3.select("svg g"),
+            zoom = d3.behavior.zoom().on("zoom", function() {
+                inner.attr("transform",
+                           "translate(" + d3.event.translate + ")" +
+                           "scale(" + d3.event.scale + ")");
+            });
+        svg.call(zoom);
+
+        function tryRender(data, pass) {
+
+            function build(graph, group, name, topLevel) {
+                var item = group + ":" + name;
+                if (pass(group, item, !topLevel)) {
+                    graph.setNode(item, { label: item });
+                    var deps = (data[group] || {})[name] || [];
+                    for(var i = 0; i < deps.length; i++) {
+                        var depGroup = deps[i][0],
+                            depName = deps[i][1],
+                            depItem = depGroup + ":" + depName;
+                        if (pass(group, depItem, !topLevel)) {
+                            if (build(graph, depGroup, depName, false)) {
+                                graph.setEdge(item, depItem);
+                            };
+                        };
+                    };
+                    return true;
+                };
+            };
+
+            var g = new graphlib.Graph();
+            g.setGraph({});
+            g.setDefaultEdgeLabel(function() { return {}; });
+
+            for(var grp in data){
+                for(var name in data[grp]){
+                    build(g, grp, name, true);
+                };
+            };
+
+            dagre.layout(g);
+            d3.select("svg g").call(dagreD3.render(), g);
+        };
+
+        function parseInput(s) {
+            var groups = [], items = [], rows = s.split(";");
+            for(var idx = 0; idx < rows.length; idx++){
+                var row = rows[idx].split(":");
+                if (row.length <= 2) {
+                    var group = row[0];
+                    if (row.length == 1) {
+                        if (group != "") {
+                            groups.push(group);
+                        };
+                    } else {
+                        var ents = row[1].split(",");
+                        for(var i = 0; i < ents.length; i++){
+                            items.push(group + ":" + ents[i])
+                        };
+                    };
+                };
+            };
+            return [groups, items]
+        };
+
+        function makeFilter(include, exclude) {
+            var incs = parseInput(include),
+                excs = parseInput(exclude),
+
+                matcher = function(groups, items) {
+                    return function(group, item) {
+                        return (
+                            (groups.indexOf(group) >= 0) || (items.indexOf(item) >= 0)
+                        );
+                    };
+                },
+
+                pass = (!incs[0].length && !incs[1].length) ? function(){ return true } : matcher(incs[0], incs[1]),
+                skip = matcher(excs[0], excs[1]);
+
+            return function(group, item, onlyExclude) {
+                return (
+                    (onlyExclude || pass(group, item)) &&
+                    !skip(group, item)
+                );
+            };
+        };
+
+        window.onload = function() {
+            var includeField = $("#include")[0],
+                excludeField = $("#exclude")[0];
+
+            $("#apply").on("click", function() {
+                var pass = makeFilter(includeField.value, excludeField.value);
+                tryRender(data, pass);
+            });
+
+            tryRender(data, function() { return true });
+        };
+    </script>
+  </body>
+</html>

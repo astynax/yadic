@@ -1,0 +1,27 @@
+language: python
+python:
+- '2.7'
+- '3.3'
+- '3.4'
+install:
+- easy_install -U pip
+- pip install pytest>=2.6.4 pytest-pep8 pytest-cov coveralls
+script:
+- py.test --pep8 --cov ./src --cov-config=.coveragerc
+after_success:
+- coveralls
+notifications:
+  hipchat:
+    rooms:
+      - b7098c17bc3283dc7ca388b68e3ca3@barsup
+    template:
+      - '%{repository}#%{build_number} (%{branch} - %{commit} : %{author}): %{message}'
+deploy:
+  provider: pypi
+  user: bars-travis
+  password:
+    secure: Oy6kZintPKRloRr6cdm6yuJStw+wOkqMRa6/KRC20b/io0J7SLRw10rd74I8vKUL5itg+7Q8IdFXBMvrWX5EyzYLrhIZnWszkZy83mFoVGH5zcaxMtl0JRAqFf0msn2i1disjDbOqx97Ot7AQwPD8/rZ2nCnEAPC8PfC8bLYWVs=
+  on:
+    tags: true
+    all_branches: true
+  distributions: sdist bdist_wheel

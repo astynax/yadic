@@ -1,2 +1,2 @@
 [run]
-omit = src/yadic/tests/*
+omit = src/yadic/tests/*,src/yadic/browse.py,src/yadic/dot.py

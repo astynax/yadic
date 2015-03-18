@@ -2,8 +2,8 @@
 
 from __future__ import print_function
 
-import sys
 import json
+from collections import deque
 from optparse import OptionParser
 
 from yadic.container import Container
@@ -23,76 +23,81 @@ def dot(container, include, exclude):
     assert isinstance(include, dict) and isinstance(exclude, dict)
     data = container._config
 
-    def checker(dic):
-        def inner(grp, ent):
-            ents = dic.get(grp)
-            if ents is None:
-                return False
-            return not ents or ent in ents
+    def make_filter(data, consider_from=False):
+        groupset = set(g for (g, es) in data.items() if not es)
+        nodeset = set(_key_pairs(data))
+
+        def inner(pair):
+            from_node, node = pair
+            return (from_node and consider_from) or (
+                node[0] in groupset or node in nodeset
+            )
         return inner
 
-    def keep_all(*args):
-        return True
+    def branch(node):
+        grp, ent = node
+        result = []
+        for dep_name, val in data[grp][ent].items():
+            if not dep_name.startswith('$') and not dep_name.startswith('__'):
+                first, rest = val
+                if first is None:
+                    deps = rest
+                else:
+                    deps = [val]
+                result.extend(deps)
+        return result
 
-    out = []
-    already = set()
+    initial = _key_pairs(data)
 
-    def render(grp, ent, dep, dep_render, skip):
-        smth_out = False
-        dep_group, dep_ent = dep
-        if not skip(dep_group, dep_ent) and dep not in already:
-            out.append('\t"%s:%s" -> "%s:%s";' % (
-                grp, ent, dep_group, dep_ent))
-            if dep_render and dep not in already:
-                # we need to go deeper!
-                dep_render(
-                    keep_all, skip,
-                    dep_group,
-                    [(dep_ent, data[dep_group][dep_ent])],
-                    dep_render
-                )
-            already.add(dep)
-            smth_out = True
-        return smth_out
+    return _render_digraph(_arc_list(
+        initial=initial,
+        branch_it=branch,
+        include=make_filter(include, True) if include else (lambda _: True),
+        exclude=make_filter(exclude)
+    ))
 
-    def render_group(keep, skip, group, group_data, dep_render):
-        for ent, deps in group_data:
-            if keep(group, ent) and not skip(group, ent):
-                any_output = False
-                for dep, val in deps.items():
-                    if dep.startswith('$') or dep.startswith('__'):
-                        continue
-                    first, rest = val
-                    targets = rest if first is None else [val]
-                    for d in targets:
-                        any_output = any_output or (
-                            render(group, ent, d, dep_render, skip))
-                if not any_output:
-                    out.append('\t"%s:%s";' % (group, ent))
-                    already.add((group, ent))
 
-    # if the include list is non-empty,
-    # rendering must be the recursive one
-    if include:
-        dep_render = render_group
-    else:
-        dep_render = None
+def _key_pairs(data):
+    """Returns list of paris which contains
+    toplevel and second level keys of source dict.
 
-    for group, ents in data.items():
-        render_group(
-            checker(include) if include else keep_all,
-            checker(exclude),
-            group, ents.items(),
-            dep_render=dep_render
-        )
+    >>> list(sorted(_key_pairs({'a', {'x': 1, 'y': 2}, 'b', {}})))
+    [('a', 'x'), ('a', 'y')]
+    """
+    return ((k1, k2) for k1, lvl2 in data.items() for k2 in lvl2)
 
-    return True, 'digraph container {\n%s\n}' % ('\n'.join(out))
+
+def _arc_list(initial, branch_it, include, exclude):
+    result = []
+    populated = set()
+    nodes = deque((None, n) for n in initial)
+    while nodes:
+        _, node = pair = nodes.popleft()
+        if include(pair) and not exclude(pair):
+            result.append(pair)
+            if node not in populated:
+                populated.add(node)
+                nodes.extend((node, child) for child in branch_it(node))
+    return result
+
+
+def _render_digraph(pairs):
+    """Renders paris of nodes to .dot-file with directional graph.
+    """
+    out = ['digraph container {']
+    for frm, to in pairs:
+        out.append(
+            '\t' +
+            ('"{}:{}" -> '.format(*frm) if frm else '') +
+            '"{}:{}";'.format(*to))
+    out.append("}")
+    return '\n'.join(out)
 
 
 def _parse_filter(filter_string):
-    """
-    Parses the filter-string (include/exclude)
-    into dictionary "group -> set of entities"
+    """Parses the filter-string (include/exclude).
+
+    Returns the dictionary in form "group -> set of entities"
 
     >>> _parse_string('names:Tom,Moe;pets:Spot;cars')
     {'names': set(['Tom', 'Moe']), 'pets': set(['Spot']), 'cars': set()}
@@ -106,9 +111,7 @@ def _parse_filter(filter_string):
 
 
 def _main():
-    parser = OptionParser(usage='usage: %prog [options] config')
-    parser.add_option(
-        '-p', '--prefix', dest='prefix', metavar='PREFIX', default=None)
+    parser = OptionParser(usage='usage: %prog [options] <CONFIG.JSON>')
     parser.add_option(
         '-i', '--include', dest='include', metavar='FILTER', default=None)
     parser.add_option(
@@ -120,22 +123,11 @@ def _main():
     else:
         conf_file, = args
         with open(conf_file) as f:
-            data = json.load(f)
-            if options.prefix:
-                try:
-                    for k in options.prefix.split('.'):
-                        data = data[k]
-                except KeyError:
-                    parser.error('Bad PREFIX format')
-            ok, res = dot(
-                container=Container(data),
+            print(dot(
+                container=Container(json.load(f)),
                 include=_parse_filter(options.include or ''),
                 exclude=_parse_filter(options.exclude or '')
-            )
-            if ok:
-                print(res)
-            else:
-                sys.stderr.write(res + '\n')
+            ))
 
 
 if __name__ == '__main__':

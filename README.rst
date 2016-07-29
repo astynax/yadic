@@ -2,14 +2,7 @@
 Yet Another Dependency Injection Container
 ==========================================
 
-
-.. image:: https://travis-ci.org/barsgroup/yadic.svg?branch=master
-    :target: https://travis-ci.org/barsgroup/yadic
-    :alt: Tests
-
-.. image:: https://img.shields.io/coveralls/barsgroup/yadic.svg?style=flat
-    :target: https://coveralls.io/r/barsgroup/yadic
-    :alt: Coverage
+|travis| |coverage|
 
 Usage example:
 
@@ -84,3 +77,12 @@ Usage example:
     )
 
 For more info go to `https://github.com/astynax/yadic <https://github.com/astynax/yadic>`_
+
+.. |travis| image:: https://travis-ci.org/barsgroup/yadic.svg?branch=master
+    :target: https://travis-ci.org/barsgroup/yadic
+    :alt: Tests
+
+.. |coverage| image:: https://img.shields.io/coveralls/barsgroup/yadic.svg?style=flat
+    :target: https://coveralls.io/r/barsgroup/yadic
+    :alt: Coverage
+

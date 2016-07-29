@@ -11,22 +11,6 @@ Yet Another Dependency Injection Container
     :alt: Coverage
     :target: https://coveralls.io/r/barsgroup/yadic
 
-.. image:: //pypip.in/version/yadic/badge.svg?style=flat&text=version&0
-    :alt: Latest Version
-    :target: https://pypi.python.org/pypi/yadic/
-
-.. image:: //pypip.in/py_versions/yadic/badge.svg?style=flat&0
-    :alt: Supported Python versions
-    :target: https://pypi.python.org/pypi/yadic/
-
-.. image:: //pypip.in/status/yadic/badge.svg?style=flat
-    :alt: Development Status
-    :target: https://pypi.python.org/pypi/yadic/
-
-.. image:: //pypip.in/license/yadic/badge.svg?style=flat
-    :alt: License
-    :target: https://pypi.python.org/pypi/yadic/
-
 Usage example:
 
 .. code-block:: python

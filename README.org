@@ -7,18 +7,6 @@
 #+ATTR_RST: :alt Coverage :target https://coveralls.io/r/barsgroup/yadic
 [[https://img.shields.io/coveralls/barsgroup/yadic.svg?style=flat]]
 
-#+ATTR_RST: :alt Latest Version :target https://pypi.python.org/pypi/yadic/
-[[https://pypip.in/version/yadic/badge.svg?style=flat&text=version&0]]
-
-#+ATTR_RST: :alt Supported Python versions :target https://pypi.python.org/pypi/yadic/
-[[https://pypip.in/py_versions/yadic/badge.svg?style=flat&0]]
-
-#+ATTR_RST: :alt Development Status :target https://pypi.python.org/pypi/yadic/
-[[https://pypip.in/status/yadic/badge.svg?style=flat]]
-
-#+ATTR_RST: :alt License :target https://pypi.python.org/pypi/yadic/
-[[https://pypip.in/license/yadic/badge.svg?style=flat]]
-
 Usage example:
 
 #+BEGIN_SRC python

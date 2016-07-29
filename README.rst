@@ -4,12 +4,12 @@ Yet Another Dependency Injection Container
 
 
 .. image:: https://travis-ci.org/barsgroup/yadic.svg?branch=master
-    :alt: Tests
     :target: https://travis-ci.org/barsgroup/yadic
+    :alt: Tests
 
 .. image:: https://img.shields.io/coveralls/barsgroup/yadic.svg?style=flat
-    :alt: Coverage
     :target: https://coveralls.io/r/barsgroup/yadic
+    :alt: Coverage
 
 Usage example:
 

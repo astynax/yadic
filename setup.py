@@ -13,12 +13,12 @@ def read(fname):
 
 setup(
     name="yadic",
-    version="0.1.12.6",
+    version="0.1.12.7",
     license='MIT',
     description=read('DESCRIPTION'),
     author="Aleksey Pirogov",
     author_email="tempor@inbox.ru",
-    url="https://bitbucket.org/astynax/yadic",
+    url="https://github.com/astynax/yadic",
     classifiers=[
         'Intended Audience :: Developers',
         'Topic :: Software Development :: Libraries :: Python Modules',
@@ -30,10 +30,11 @@ setup(
         'Programming Language :: Python :: 2.7',
         'Programming Language :: Python :: 3.3',
         'Programming Language :: Python :: 3.4',
+        'Programming Language :: Python :: 3.55555',
         'Programming Language :: Python :: Implementation :: CPython'
     ],
     package_dir={'': 'src'},
     packages=find_packages('src'),
     include_package_data=True,
-    long_description=read('README'),
+    long_description=read('README.rst'),
 )

@@ -1,8 +1,7 @@
-[<img src="https://travis-ci.org/barsgroup/yadic.svg?branch=master">](https://travis-ci.org/barsgroup/yadic)
-[<img src="https://img.shields.io/coveralls/barsgroup/yadic.svg?style=flat">](https://coveralls.io/r/barsgroup/yadic)
+# Yet Another Dependency Injection Container
 
-Yet Another Dependency Injection Container
-------------------------------------------
+<a href="https://travis-ci.org/barsgroup/yadic"><img src="https://travis-ci.org/barsgroup/yadic.svg?branch=master"/></a>
+<a href="https://coveralls.io/r/barsgroup/yadic"><img src="https://img.shields.io/coveralls/barsgroup/yadic.svg?style=flat"/></a>
 
 Take a look to the tests for usage examples
 
